@@ -241,6 +241,28 @@ class JourneyPageTests(unittest.TestCase):
         self.assertEqual(page.section_ids, expected_ids)
         self.assertEqual(page.toc_hrefs, expected_ids)
 
+    def test_skip_link_is_hidden_until_keyboard_focus(self):
+        """Removing either the off-screen default or focus recovery must expose or lose the skip link."""
+        stylesheet = (ROOT / "journey" / "journey.css").read_text(encoding="utf-8")
+        hidden_rule = re.search(r"\.skip-link\{([^}]*)\}", stylesheet)
+        focused_rule = re.search(r"\.skip-link:focus,\.skip-link:focus-visible\{([^}]*)\}", stylesheet)
+        self.assertIsNotNone(hidden_rule)
+        self.assertIsNotNone(focused_rule)
+
+        declarations = lambda rule: dict(
+            declaration.split(":", 1)
+            for declaration in rule.group(1).split(";")
+            if declaration
+        )
+        hidden = declarations(hidden_rule)
+        focused = declarations(focused_rule)
+        self.assertEqual(
+            {name: hidden.get(name) for name in ("position", "left", "width", "height", "overflow")},
+            {"position": "absolute", "left": "-10000px", "width": "1px", "height": "1px", "overflow": "hidden"},
+        )
+        self.assertNotEqual(focused.get("left"), hidden["left"])
+        self.assertEqual({name: focused.get(name) for name in ("width", "height")}, {"width": "auto", "height": "auto"})
+
 
 class JourneyImageTests(unittest.TestCase):
     data_dir = ROOT / "journey" / "data"
