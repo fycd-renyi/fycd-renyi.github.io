@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "algorithm": "SHA-256",
+  "encoding": "UTF-8",
+  "serialization": "UTF-8 bytes of JSON.stringify([section.id, section.title, section.source_heading ?? section.title, section.source_url ?? article.source_url, section.paragraphs])",
+  "source_page_count": 19,
+  "sources": [
+    {
+      "data_file": "overview.json",
+      "title": "修辦歷程",
+      "source_url": "https://sites.google.com/view/fycd-renyidaxian/%E4%BF%AE%E8%BE%A6%E6%AD%B7%E7%A8%8B?authuser=0",
+      "source_page_count": 1,
+      "sections": [
+        {
+          "id": "journey",
+          "sha256": "9a34b4493ec2c10c00ec1d76453a6a769b94ae337542f0b9da5b4bca57631080"
+        },
+        {
+          "id": "filial-piety",
+          "sha256": "966913ac839beb1d460ab53d71192ef58ce1ffaf13fb743b0306e7c3410f69b9"
+        },
+        {
+          "id": "embody-the-way",
+          "sha256": "f3038846d81013edf3b74d02829a1f243a74afbd99782a31ff6dc12019af9b0b"
+        },
+        {
+          "id": "heaven-and-humanity",
+          "sha256": "53222517bdc91ff04f9a7757885a0dccdadd2aa2e5d65f1ad467276d2664b895"
+        }
+      ]
+    },
+    {
+      "data_file": "daofeng-yifan.json",
+      "title": "道風彝範",
+      "source_url": "https://sites.google.com/view/fycd-renyidaxian/%E4%BF%AE%E8%BE%A6%E6%AD%B7%E7%A8%8B/%E9%81%93%E9%A2%A8%E5%BD%9D%E7%AF%84?authuser=0",
+      "source_page_count": 1,
+      "sections": [
+        {
+          "id": "preface",
+          "sha256": "8ec33896cfba47c3bc7b9de9ece8d5c198bf39abbdd8c726fd96f6e62e5e7f92"
+        },
+        {
+          "id": "great-cause",
+          "sha256": "8e5814472f9c66408f724e7d4b0183fe20c31657cf93ee1d596d0aa235297a66"
+        },
+        {
+          "id": "journey-review",
+          "sha256": "db8df7beaffc978a15fc0e978301ef6e5d8c8167fbb886d37591aeb539e9a96d"
+        },
+        {
+          "id": "daofeng-yifan",
+          "sha256": "e719c28d7e37f633f190467df15cf725d4f9b588f453f53b0e694bdc5c78c9c5"
+        },
+        {
+          "id": "conclusion",
+          "sha256": "d77d2af688bfb0b17d9abb5d7ce46716fb92df820900a1d15f3f34641ad44793"
+        }
+      ]
+    },
+    {
+      "data_file": "dao-zhi-zungui-ganying.json",
+      "title": "道之尊貴感應",
+      "source_url": "https://sites.google.com/view/fycd-renyidaxian/%E4%BF%AE%E8%BE%A6%E6%AD%B7%E7%A8%8B/%E9%81%93%E4%B9%8B%E5%B0%8A%E8%B2%B4%E6%84%9F%E6%87%89?authuser=0",
+      "source_page_count": 16,
+      "sections": [
+        {
+          "id": "preface",
+          "sha256": "2e3cb679c755d45f2fadecc37a6f4b6425321078de0b2e2d1852281780076a82"
+        },
+        {
+          "id": "filial-piety",
+          "sha256": "f61f5d7e86c03019488885ccaa8485b5ccd880f6357a58910e70faab72154311"
+        },
+        {
+          "id": "mother-debt",
+          "sha256": "2d915410a06c7a7eaec1bb5f43c819400eaa7debb17daebbd1031c5df5450e64"
+        },
+        {
+          "id": "self-sacrifice",
+          "sha256": "c36ca9e6081872fb97443a74ecc7a74c4683dd62b67046e44422457c1b1c34a3"
+        },
+        {
+          "id": "court",
+          "sha256": "2a5290d6f19dba45ceeaaa9ed4770a7130caeee2ff9dff1a5578264512dcc850"
+        },
+        {
+          "id": "kaotai",
+          "sha256": "a953ce3301c4bf0e5e3b1402862a131ad899367246e2c73d8e4bbe887ec76fc1"
+        },
+        {
+          "id": "merit-debt",
+          "sha256": "75a0b520afec63237093d5dadf72edb32db1c965e1cd20e3f46339ca4bc8e1fa"
+        },
+        {
+          "id": "human-ghost",
+          "sha256": "d58d6f3f41c2032a95d09966529be7e795562fd1c4567a3ecaceadc3a814ee98"
+        },
+        {
+          "id": "immortal",
+          "sha256": "94971eb30064cdb9c81be8aebef062e95c979acc0657682e5119b604b7199492"
+        },
+        {
+          "id": "calligraphy",
+          "sha256": "932f6379a4aa3cec205e973d6c459a27349110a2ee8ec29ad4035f4f73d67a80"
+        },
+        {
+          "id": "siam",
+          "sha256": "63dd8f3c3a29e818f88ae348ea44a69ed19e344fbceaad5d22febd404f2ed622"
+        },
+        {
+          "id": "snake",
+          "sha256": "9eaee28237dc3be8695a6a357f5cf3661cfbcb6dcf9e8243ef608faae07bad3b"
+        },
+        {
+          "id": "miracle",
+          "sha256": "4af29ea6fffa8e334222e30be691610468e6133b6b22b09d9c23b65fdbcfbe4f"
+        },
+        {
+          "id": "catholic",
+          "sha256": "a515bee6cc3fc3fa1cb6ee715824593c8270585e387e0b47fd0c97acc6658acc"
+        },
+        {
+          "id": "afterword",
+          "sha256": "33517cc46c5fb010b18f2a9ed7f30583a8aa46d3cdade1aff2bc4259a27f6bb1"
+        }
+      ]
+    },
+    {
+      "data_file": "yushi-fenpan.json",
+      "title": "玉石分判講解",
+      "source_url": "https://sites.google.com/view/fycd-renyidaxian/%E4%BF%AE%E8%BE%A6%E6%AD%B7%E7%A8%8B/%E7%8E%89%E7%9F%B3%E5%88%86%E5%88%A4%E8%AC%9B%E8%A7%A3?authuser=0",
+      "source_page_count": 1,
+      "sections": [
+        {
+          "id": "xunzhongxun",
+          "sha256": "39032e2267a0df228a5bf723986dcf0ac9e1e622ded0bb4bf924b90d5dad33c2"
+        },
+        {
+          "id": "cibei-jianghua",
+          "sha256": "8197d93b4c3dc959c45e35d54684725c3990ae8c4d3a80a0620d8553dc0ac330"
+        },
+        {
+          "id": "yu",
+          "sha256": "60d5353107c3cacb2747ec58e6bd7ae944ac0b7c251d30177fa310e5f9621ef9"
+        },
+        {
+          "id": "shi",
+          "sha256": "009f67dbd462c31a1b4b30d89e0d8940cb4359ddbea520c1212918a0eff0bd74"
+        },
+        {
+          "id": "fen",
+          "sha256": "cfd21f5b87628e08059888b9ffbeda3cd8858be372a84e773f43a49a04ffa275"
+        },
+        {
+          "id": "pan",
+          "sha256": "8b99ceab7fdf83fd29b423434d1a59c0d7fc5227860911c77871f8d66c793dec"
+        }
+      ]
+    }
+  ]
+}

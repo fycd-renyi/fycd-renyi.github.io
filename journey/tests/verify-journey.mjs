@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,6 +7,8 @@ import { fileURLToPath } from "node:url";
 
 const JOURNEY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA_ROOT = path.join(JOURNEY_ROOT, "data");
+const INTEGRITY_FILE = path.join(DATA_ROOT, "source-integrity.json");
+const INTEGRITY_SERIALIZATION = "UTF-8 bytes of JSON.stringify([section.id, section.title, section.source_heading ?? section.title, section.source_url ?? article.source_url, section.paragraphs])";
 
 const GANYING_TITLES = [
   "序文", "至孝感天為母添壽", "母償債冤魂討命", "捨己救人冤鬼退",
@@ -27,6 +30,7 @@ const sources = [
   {
     dataFile: "overview.json",
     pageFile: "index.html",
+    sourcePageCount: 1,
     sections: [
       ["journey", "修辦歷程", "修辦歷程", 4],
       ["filial-piety", "至孝感天　為母添壽", "至孝感天　為母添壽", 2],
@@ -37,6 +41,7 @@ const sources = [
   {
     dataFile: "daofeng-yifan.json",
     pageFile: "daofeng-yifan.html",
+    sourcePageCount: 1,
     sections: [
       ["preface", "前言", "前言", 1],
       ["great-cause", "一大事因緣在人間", "一大事因緣在人間", 4],
@@ -48,6 +53,7 @@ const sources = [
   {
     dataFile: "dao-zhi-zungui-ganying.json",
     pageFile: "dao-zhi-zungui-ganying.html",
+    sourcePageCount: 16,
     sections: GANYING_TITLES.map((title, index) => [
       [
         "preface", "filial-piety", "mother-debt", "self-sacrifice", "court",
@@ -62,6 +68,7 @@ const sources = [
   {
     dataFile: "yushi-fenpan.json",
     pageFile: "yushi-fenpan.html",
+    sourcePageCount: 1,
     sections: [
       ["xunzhongxun", "玉石分判 訓中訓", "玉石分判 訓中訓", 13],
       ["cibei-jianghua", "玉石分判–辛已年冬季大典慈悲講話", "玉石分判–辛已年冬季大典慈悲講話", 4],
@@ -111,17 +118,67 @@ const extractVerbatimParagraphs = (page) => [...page.matchAll(
   /<p data-verbatim="true">([\s\S]*?)<\/p>/g,
 )].map((match) => decodeHtml(match[1]));
 
+const sectionDigest = (article, section) => createHash("sha256")
+  .update(JSON.stringify([
+    section.id,
+    section.title,
+    section.source_heading ?? section.title,
+    section.source_url ?? article.source_url,
+    section.paragraphs,
+  ]), "utf8")
+  .digest("hex");
+
 export async function verifyJourney() {
   const template = await readFile(path.join(JOURNEY_ROOT, "templates", "base.html"), "utf8");
+  let integrity;
+  try {
+    integrity = JSON.parse(await readFile(INTEGRITY_FILE, "utf8"));
+  } catch (error) {
+    if (error?.code === "ENOENT") assert.fail("source-integrity.json must exist before source content can be verified");
+    throw error;
+  }
+  assert.deepEqual(
+    {
+      version: integrity.version,
+      algorithm: integrity.algorithm,
+      encoding: integrity.encoding,
+      serialization: integrity.serialization,
+      source_page_count: integrity.source_page_count,
+    },
+    {
+      version: 1,
+      algorithm: "SHA-256",
+      encoding: "UTF-8",
+      serialization: INTEGRITY_SERIALIZATION,
+      source_page_count: 19,
+    },
+    "source-integrity.json metadata and serialization contract",
+  );
+  assert.deepEqual(
+    integrity.sources.map((source) => [
+      source.data_file,
+      source.source_page_count,
+      source.sections.map((section) => section.id),
+    ]),
+    sources.map((source) => [
+      source.dataFile,
+      source.sourcePageCount,
+      source.sections.map(([id]) => id),
+    ]),
+    "source-integrity.json must cover every expected source page and section in order, with no extras or omissions",
+  );
   let paragraphCount = 0;
   let articleSectionCount = 0;
 
-  for (const source of sources) {
+  for (const [sourceIndex, source] of sources.entries()) {
     const article = JSON.parse(await readFile(path.join(DATA_ROOT, source.dataFile), "utf8"));
+    const integritySource = integrity.sources[sourceIndex];
     assert.equal(typeof article.title, "string", `${source.dataFile}: title`);
     assert.ok(article.title, `${source.dataFile}: non-empty title`);
     assert.equal(typeof article.source_url, "string", `${source.dataFile}: source_url`);
     assert.ok(article.source_url, `${source.dataFile}: non-empty source_url`);
+    assert.equal(article.title, integritySource.title, `${source.dataFile}: frozen source title`);
+    assert.equal(article.source_url, integritySource.source_url, `${source.dataFile}: frozen source URL`);
     assert.ok(Array.isArray(article.sections), `${source.dataFile}: sections`);
 
     const ids = article.sections.map((section) => section.id);
@@ -135,6 +192,14 @@ export async function verifyJourney() {
       ]),
       source.sections,
       `${source.dataFile}: required section structure`,
+    );
+    assert.deepEqual(
+      integritySource.sections,
+      article.sections.map((section) => ({
+        id: section.id,
+        sha256: sectionDigest(article, section),
+      })),
+      `${source.dataFile}: frozen source-integrity SHA-256 digests`,
     );
 
     for (const section of article.sections) {
