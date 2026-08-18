@@ -4,10 +4,57 @@ The dependency-free executable verifier is ``verify-journey.mjs``.
 """
 
 import json
+from html.parser import HTMLParser
 from pathlib import Path
 import unittest
 
 from journey.build_pages import render_article
+
+
+ROOT = Path(__file__).parents[2]
+ARTICLE_FILES = {
+    "daofeng-yifan": "daofeng-yifan.json",
+    "dao-zhi-zungui-ganying": "dao-zhi-zungui-ganying.json",
+    "yushi-fenpan": "yushi-fenpan.json",
+}
+
+
+class JourneyPageParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.verbatim_paragraphs = []
+        self.section_ids = []
+        self.toc_hrefs = []
+        self._paragraph = None
+        self._toc_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if tag == "p" and attributes.get("data-verbatim") == "true":
+            self._paragraph = []
+        if tag == "section" and "journey-chapter" in attributes.get("class", ""):
+            self.section_ids.append(attributes["id"])
+        if tag == "nav" and "article-toc" in attributes.get("class", ""):
+            self._toc_depth += 1
+        if tag == "a" and self._toc_depth and attributes.get("href", "").startswith("#"):
+            self.toc_hrefs.append(attributes["href"][1:])
+
+    def handle_endtag(self, tag):
+        if tag == "p" and self._paragraph is not None:
+            self.verbatim_paragraphs.append("".join(self._paragraph))
+            self._paragraph = None
+        if tag == "nav" and self._toc_depth:
+            self._toc_depth -= 1
+
+    def handle_data(self, data):
+        if self._paragraph is not None:
+            self._paragraph.append(data)
+
+
+def parse_page(path):
+    parser = JourneyPageParser()
+    parser.feed(path.read_text(encoding="utf-8"))
+    return parser
 
 
 EXPECTED_GANYING_TITLES = [
@@ -131,3 +178,29 @@ class JourneyDataTests(unittest.TestCase):
         rendered = render_article(article)
         self.assertIn('<a href="#chapter">目錄章名</a>', rendered)
         self.assertIn("<h2>原頁標題</h2>", rendered)
+
+
+class JourneyPageTests(unittest.TestCase):
+    data_dir = ROOT / "journey" / "data"
+
+    def load_json(self, filename):
+        return json.loads((self.data_dir / filename).read_text(encoding="utf-8"))
+
+    def test_generated_verbatim_paragraphs_equal_source_json(self):
+        for slug, filename in ARTICLE_FILES.items():
+            source = self.load_json(filename)
+            expected = [paragraph for section in source["sections"] for paragraph in section["paragraphs"]]
+            actual = parse_page(ROOT / "journey" / f"{slug}.html").verbatim_paragraphs
+            self.assertEqual(actual, expected)
+
+    def test_ganying_is_a_single_ordered_page_with_matching_toc_anchors(self):
+        self.assertEqual(
+            [path.name for path in (ROOT / "journey").glob("*ganying*.html")],
+            ["dao-zhi-zungui-ganying.html"],
+        )
+        source = self.load_json("dao-zhi-zungui-ganying.json")
+        page = parse_page(ROOT / "journey" / "dao-zhi-zungui-ganying.html")
+        expected_ids = [section["id"] for section in source["sections"]]
+        self.assertEqual(len(expected_ids), 15)
+        self.assertEqual(page.section_ids, expected_ids)
+        self.assertEqual(page.toc_hrefs, expected_ids)

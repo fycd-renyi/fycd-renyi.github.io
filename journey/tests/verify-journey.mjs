@@ -86,6 +86,21 @@ const OVERVIEW_ARTICLES = [
   "yushi-fenpan.html",
 ];
 
+const ARTICLE_NAVIGATION = {
+  "daofeng-yifan": {
+    previous: ["index.html", "修辦歷程"],
+    next: ["dao-zhi-zungui-ganying.html", "道之尊貴感應"],
+  },
+  "dao-zhi-zungui-ganying": {
+    previous: ["daofeng-yifan.html", "道風彝範"],
+    next: ["yushi-fenpan.html", "玉石分判講解"],
+  },
+  "yushi-fenpan": {
+    previous: ["dao-zhi-zungui-ganying.html", "道之尊貴感應"],
+    next: ["index.html", "修辦歷程"],
+  },
+};
+
 const escapeHtml = (value) => String(value)
   .replaceAll("&", "&amp;")
   .replaceAll("<", "&lt;")
@@ -110,14 +125,23 @@ const renderSection = (section) => {
     + `<h2>${escapeHtml(heading)}</h2>${renderParagraphs(section.paragraphs)}</section>`;
 };
 
+const renderArticlePagination = (article) => {
+  const navigation = ARTICLE_NAVIGATION[article.slug];
+  return `<nav class="article-pagination" aria-label="文章導覽">`
+    + `<a class="article-pagination-previous" href="${navigation.previous[0]}">上一篇：${navigation.previous[1]}</a>`
+    + `<a class="article-pagination-overview" href="index.html">返回總覽</a>`
+    + `<a class="article-pagination-next" href="${navigation.next[0]}">下一篇：${navigation.next[1]}</a></nav>`;
+};
+
 const renderArticle = (article) => {
   const toc = article.sections
     .map((section) => `<li><a href="#${escapeHtml(section.id)}">${escapeHtml(section.title)}</a></li>`)
     .join("");
   const sections = article.sections.map(renderSection).join("\n");
-  return `<article><h1>${escapeHtml(article.title)}</h1>`
+  return `<article class="journey-article"><header class="article-header"><p class="journey-kicker">修辦歷程</p><h1>${escapeHtml(article.title)}</h1>`
+    + `<p class="verbatim-notice">以下正文依原站逐字保存</p></header>`
     + `<nav class="article-toc" aria-label="文章目錄"><ol>${toc}</ol></nav>`
-    + `${sections}</article>`;
+    + `${sections}${renderArticlePagination(article)}<a id="back-to-top" class="back-to-top" href="#main-content">回到頁首</a></article>`;
 };
 
 const renderOverview = (article) => {
@@ -188,6 +212,7 @@ export async function verifyJourney() {
 
   for (const [sourceIndex, source] of sources.entries()) {
     const article = JSON.parse(await readFile(path.join(DATA_ROOT, source.dataFile), "utf8"));
+    article.slug = source.pageFile.replace(/\.html$/, "");
     const integritySource = integrity.sources[sourceIndex];
     assert.equal(typeof article.title, "string", `${source.dataFile}: title`);
     assert.ok(article.title, `${source.dataFile}: non-empty title`);
@@ -261,6 +286,17 @@ export async function verifyJourney() {
         const catalogPath = sourcePath.replace("../photos/", "");
         assert.ok(catalogue.split("\n").some((line) => line.startsWith(`${catalogPath},`)), `index.html: image must be catalogued (${sourcePath})`);
       }
+    } else {
+      assert.match(page, /class="verbatim-notice"/, `${source.pageFile}: verbatim-source notice`);
+      assert.match(page, /class="article-pagination"/, `${source.pageFile}: article pagination`);
+      assert.match(page, /id="back-to-top"/, `${source.pageFile}: back-to-top anchor`);
+      const tocHrefs = [...page.matchAll(/class="article-toc"[\s\S]*?<ol>([\s\S]*?)<\/ol>/g)]
+        .flatMap((match) => [...match[1].matchAll(/href="#([^"]+)"/g)].map((href) => href[1]));
+      assert.deepEqual(tocHrefs, article.sections.map((section) => section.id), `${source.pageFile}: TOC anchors match every section in order`);
+      const navigation = ARTICLE_NAVIGATION[article.slug];
+      assert.ok(page.includes(`href="${navigation.previous[0]}"`), `${source.pageFile}: previous article link`);
+      assert.ok(page.includes('href="index.html">返回總覽</a>'), `${source.pageFile}: overview link`);
+      assert.ok(page.includes(`href="${navigation.next[0]}"`), `${source.pageFile}: next article link`);
     }
 
     paragraphCount += expectedParagraphs.length;

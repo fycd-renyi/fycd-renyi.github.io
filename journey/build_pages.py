@@ -11,6 +11,8 @@ ARTICLE_FILES = {
     "yushi-fenpan": "yushi-fenpan.json",
 }
 
+ARTICLE_ORDER = tuple(ARTICLE_FILES)
+
 
 def load_article(path):
     article = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -37,10 +39,35 @@ def render_section(section):
             f'<h2>{html.escape(heading)}</h2>{render_paragraphs(section["paragraphs"])}</section>')
 
 
-def render_article(article):
+def render_article_pagination(navigation):
+    return (
+        '<nav class="article-pagination" aria-label="文章導覽">'
+        f'<a class="article-pagination-previous" href="{html.escape(navigation["previous_href"])}">上一篇：{html.escape(navigation["previous_title"])}</a>'
+        '<a class="article-pagination-overview" href="index.html">返回總覽</a>'
+        f'<a class="article-pagination-next" href="{html.escape(navigation["next_href"])}">下一篇：{html.escape(navigation["next_title"])}</a>'
+        '</nav>'
+    )
+
+
+def render_article(article, navigation=None):
+    navigation = navigation or {
+        "previous_href": "index.html",
+        "previous_title": "修辦歷程",
+        "next_href": "index.html",
+        "next_title": "修辦歷程",
+    }
     toc = "".join(f'<li><a href="#{html.escape(section["id"])}">{html.escape(section["title"])}</a></li>' for section in article["sections"])
     sections = "\n".join(render_section(section) for section in article["sections"])
-    return f'<article><h1>{html.escape(article["title"])}</h1><nav class="article-toc" aria-label="文章目錄"><ol>{toc}</ol></nav>{sections}</article>'
+    return (
+        '<article class="journey-article">'
+        '<header class="article-header"><p class="journey-kicker">修辦歷程</p>'
+        f'<h1>{html.escape(article["title"])}</h1>'
+        '<p class="verbatim-notice">以下正文依原站逐字保存</p></header>'
+        f'<nav class="article-toc" aria-label="文章目錄"><ol>{toc}</ol></nav>{sections}'
+        f'{render_article_pagination(navigation)}'
+        '<a id="back-to-top" class="back-to-top" href="#main-content">回到頁首</a>'
+        '</article>'
+    )
 
 
 def render_overview(article):
@@ -87,9 +114,20 @@ def build_all(root):
     root = Path(root)
     journey = root / "journey"
     template = (journey / "templates" / "base.html").read_text(encoding="utf-8")
-    for slug, filename in ARTICLE_FILES.items():
-        article = load_article(journey / "data" / filename)
-        page = template.format(title=html.escape(article["title"]), content=render_article(article))
+    articles = [
+        (slug, load_article(journey / "data" / ARTICLE_FILES[slug]))
+        for slug in ARTICLE_ORDER
+    ]
+    for index, (slug, article) in enumerate(articles):
+        previous = articles[index - 1] if index else ("index", {"title": "修辦歷程"})
+        following = articles[index + 1] if index + 1 < len(articles) else ("index", {"title": "修辦歷程"})
+        navigation = {
+            "previous_href": f"{previous[0]}.html",
+            "previous_title": previous[1]["title"],
+            "next_href": f"{following[0]}.html",
+            "next_title": following[1]["title"],
+        }
+        page = template.format(title=html.escape(article["title"]), content=render_article(article, navigation))
         (journey / f"{slug}.html").write_text(page, encoding="utf-8", newline="\n")
     overview = load_article(journey / "data" / "overview.json")
     page = template.format(
