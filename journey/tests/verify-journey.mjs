@@ -170,6 +170,25 @@ const sectionDigest = (article, section) => createHash("sha256")
 
 export async function verifyJourney() {
   const template = await readFile(path.join(JOURNEY_ROOT, "templates", "base.html"), "utf8");
+  const stylesheet = await readFile(path.join(JOURNEY_ROOT, "journey.css"), "utf8");
+  const script = await readFile(path.join(JOURNEY_ROOT, "journey.js"), "utf8");
+  assert.ok(template.includes('<script src="journey.js" defer>'), "base template: progressive-enhancement script is deferred");
+  assert.match(
+    stylesheet,
+    /\.back-to-top\{[^}]*opacity:1;[^}]*pointer-events:auto;/,
+    "back-to-top: usable without JavaScript",
+  );
+  assert.match(
+    stylesheet,
+    /\.js-enabled \.back-to-top\{[^}]*opacity:0;[^}]*pointer-events:none;/,
+    "back-to-top: JavaScript alone enables hidden-until-scroll behavior",
+  );
+  assert.match(
+    stylesheet,
+    /\.js-enabled \.back-to-top\.is-visible\{[^}]*opacity:1;[^}]*pointer-events:auto;/,
+    "back-to-top: JavaScript restores the scroll-visible control",
+  );
+  assert.match(script, /root\.classList\.add\("js-enabled"\);/, "journey.js: marks JavaScript enhancement");
   let integrity;
   try {
     integrity = JSON.parse(await readFile(INTEGRITY_FILE, "utf8"));

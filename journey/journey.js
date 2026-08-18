@@ -1,5 +1,6 @@
 (() => {
   const root = document.documentElement;
+  root.classList.add("js-enabled");
   const menuToggle = document.querySelector("[data-menu-toggle]");
   const siteNav = document.querySelector("[data-site-nav]");
   const backToTop = document.querySelector("#back-to-top");
@@ -8,8 +9,6 @@
     [...document.querySelectorAll('.article-toc a[href^="#"]')]
       .map((link) => [link.getAttribute("href").slice(1), link]),
   );
-
-  root.classList.add("js-enabled");
 
   if (menuToggle && siteNav) {
     menuToggle.addEventListener("click", () => {
