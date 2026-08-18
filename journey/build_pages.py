@@ -39,11 +39,23 @@ def render_image(image):
             f'<figcaption>{html.escape(image["caption"])}</figcaption></figure>')
 
 
+def render_source_attribution(source_url):
+    return (f'<p class="journey-source-attribution">Source: <a href="{html.escape(source_url)}" '
+            'target="_blank" rel="noopener">Google Sites source</a></p>')
+
+
 def render_section(section, images=()):
     heading = section.get("source_heading", section["title"])
     section_images = "".join(render_image(image) for image in images if image["after_section"] == section["id"])
+    inline_links = ""
+    if section.get("links"):
+        links = " ".join(
+            f'<a href="{html.escape(link["url"])}" target="_blank" rel="noopener">{html.escape(link["label"])}</a>'
+            for link in section["links"]
+        )
+        inline_links = f'<aside class="journey-inline-links" aria-label="Source links">Source links: {links}</aside>'
     return (f'<section class="journey-chapter" id="{html.escape(section["id"])}">'
-            f'<h2>{html.escape(heading)}</h2>{render_paragraphs(section["paragraphs"])}{section_images}</section>')
+            f'<h2>{html.escape(heading)}</h2>{render_paragraphs(section["paragraphs"])}{inline_links}{section_images}</section>')
 
 
 def render_article_pagination(navigation):
@@ -64,7 +76,7 @@ def render_article(article, navigation=None):
         "next_title": "修辦歷程",
     }
     toc = "".join(f'<li><a href="#{html.escape(section["id"])}">{html.escape(section["title"])}</a></li>' for section in article["sections"])
-    sections = "\n".join(render_section(section, article.get("images", ())) for section in article["sections"])
+    sections = render_source_attribution(article["source_url"]) + "\n" + "\n".join(render_section(section, article.get("images", ())) for section in article["sections"])
     return (
         '<article class="journey-article">'
         '<header class="article-header"><p class="journey-kicker">修辦歷程</p>'
@@ -99,7 +111,7 @@ def render_overview(article):
         f'<figcaption>{html.escape(item["caption"])}</figcaption></figure>'
         for item in article["gallery"]
     )
-    sources = "\n".join(render_section(section) for section in article["sections"])
+    sources = render_source_attribution(article["source_url"]) + "\n" + "\n".join(render_section(section) for section in article["sections"])
     return (
         '<article class="journey-overview">'
         '<section class="journey-hero" aria-labelledby="journey-title">'

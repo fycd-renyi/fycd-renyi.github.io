@@ -124,9 +124,17 @@ const renderImage = (image) => `<figure class="journey-inline-figure"><img src="
 const renderSection = (section, images = []) => {
   const heading = section.source_heading ?? section.title;
   const sectionImages = images.filter((image) => image.after_section === section.id);
+  const inlineLinks = (section.links ?? [])
+    .map((link) => `<a href="${escapeHtml(link.url)}" target="_blank" rel="noopener">${escapeHtml(link.label)}</a>`)
+    .join(" ");
+  const sourceLinks = inlineLinks
+    ? `<aside class="journey-inline-links" aria-label="Source links">Source links: ${inlineLinks}</aside>`
+    : "";
   return `<section class="journey-chapter" id="${escapeHtml(section.id)}">`
-    + `<h2>${escapeHtml(heading)}</h2>${renderParagraphs(section.paragraphs)}${sectionImages.map(renderImage).join("")}</section>`;
+    + `<h2>${escapeHtml(heading)}</h2>${renderParagraphs(section.paragraphs)}${sourceLinks}${sectionImages.map(renderImage).join("")}</section>`;
 };
+
+const renderSourceAttribution = (sourceUrl) => `<p class="journey-source-attribution">Source: <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener">Google Sites source</a></p>`;
 
 const renderArticlePagination = (article) => {
   const navigation = ARTICLE_NAVIGATION[article.slug];
@@ -140,7 +148,7 @@ const renderArticle = (article) => {
   const toc = article.sections
     .map((section) => `<li><a href="#${escapeHtml(section.id)}">${escapeHtml(section.title)}</a></li>`)
     .join("");
-  const sections = article.sections.map((section) => renderSection(section, article.images ?? [])).join("\n");
+  const sections = `${renderSourceAttribution(article.source_url)}\n${article.sections.map((section) => renderSection(section, article.images ?? [])).join("\n")}`;
   return `<article class="journey-article"><header class="article-header"><p class="journey-kicker">修辦歷程</p><h1>${escapeHtml(article.title)}</h1>`
     + `<p class="verbatim-notice">以下正文依原站逐字保存</p></header>`
     + `<nav class="article-toc" aria-label="文章目錄"><ol>${toc}</ol></nav>`
@@ -153,7 +161,7 @@ const renderOverview = (article) => {
   const timeline = article.timeline.map((era) => `<li class="journey-era"><p class="journey-era-title">${escapeHtml(era.title)}</p>${era.events.map((event) => `<p><time>${escapeHtml(event.year_label)}</time>${escapeHtml(event.text)}</p>`).join("")}</li>`).join("");
   const publications = article.publications.map((item) => `<article class="journey-publication-card"><p>${escapeHtml(item.summary)}</p><h3>${escapeHtml(item.title)}</h3><a href="${escapeHtml(item.href)}">閱讀全文</a></article>`).join("");
   const gallery = article.gallery.map((item) => `<figure><img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt)}" loading="lazy" decoding="async"><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join("");
-  const sources = article.sections.map((section) => renderSection(section)).join("\n");
+  const sources = `${renderSourceAttribution(article.source_url)}\n${article.sections.map((section) => renderSection(section)).join("\n")}`;
   return `<article class="journey-overview"><section class="journey-hero" aria-labelledby="journey-title"><figure><img src="${escapeHtml(heroPhoto.src)}" alt="${escapeHtml(heroPhoto.alt)}"><figcaption>${escapeHtml(heroPhoto.caption)}</figcaption></figure><div><p class="journey-kicker">${escapeHtml(hero.kicker)}</p><h1 id="journey-title">${escapeHtml(article.title)}</h1><p>${escapeHtml(hero.intro)}</p></div></section><section class="journey-timeline" aria-labelledby="timeline-title"><div class="journey-heading"><p class="journey-kicker">時代軸線</p><h2 id="timeline-title">六個修辦階段</h2></div><ol>${timeline}</ol></section><section class="journey-publications" aria-labelledby="publications-title"><div class="journey-heading"><p class="journey-kicker">延伸閱讀</p><h2 id="publications-title">專文典藏</h2></div><div class="journey-publication-grid">${publications}</div></section><section class="journey-gallery" aria-labelledby="gallery-title"><div class="journey-heading"><p class="journey-kicker">典藏影像</p><h2 id="gallery-title">精選照片</h2></div><div class="journey-gallery-grid">${gallery}</div></section><section class="journey-sources" aria-labelledby="sources-title"><div class="journey-heading"><p class="journey-kicker">原文典藏</p><h2 id="sources-title">修辦歷程</h2></div>${sources}</section></article>`;
 };
 
@@ -312,10 +320,12 @@ export async function verifyJourney() {
       .replace("{title}", escapeHtml(article.title))
       .replace("{content}", source.dataFile === "overview.json" ? renderOverviewWithImageAttributes(article) : renderArticle(article));
     assert.equal(page, expectedPage, `${source.pageFile}: deterministic generated output`);
-    for (const image of [...page.matchAll(/<img\\b[^>]*>/g)].map((match) => match[0])) {
-      assert.match(image, /\\bloading="lazy"/, `${source.pageFile}: image lazy-loads`);
-      assert.match(image, /\\bdecoding="async"/, `${source.pageFile}: image decodes asynchronously`);
-      assert.match(image, /\\balt="[^"\\n]+"/, `${source.pageFile}: image has readable alt text`);
+    const imageTags = [...page.matchAll(/<img\b[^>]*>/g)].map((match) => match[0]);
+    assert.ok(imageTags.length, `${source.pageFile}: expected generated images`);
+    for (const image of imageTags) {
+      assert.match(image, /\bloading="lazy"/, `${source.pageFile}: image lazy-loads`);
+      assert.match(image, /\bdecoding="async"/, `${source.pageFile}: image decodes asynchronously`);
+      assert.match(image, /\balt="[^"\n]+"/, `${source.pageFile}: image has readable alt text`);
     }
 
     if (source.dataFile === "overview.json") {

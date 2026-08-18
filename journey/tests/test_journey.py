@@ -216,6 +216,24 @@ class JourneyDataTests(unittest.TestCase):
         self.assertIn("<h2>原頁標題</h2>", rendered)
 
 
+    def test_render_article_includes_primary_and_inline_source_links(self):
+        article = {
+            "title": "文章",
+            "source_url": "https://example.test/source",
+            "sections": [{
+                "id": "chapter",
+                "title": "章節",
+                "links": [{"label": "原始連結", "url": "https://example.test/inline"}],
+                "paragraphs": ["逐字內容"],
+            }],
+        }
+        rendered = render_article(article)
+        self.assertIn('href="https://example.test/source"', rendered)
+        self.assertIn('href="https://example.test/inline"', rendered)
+        self.assertIn(">原始連結</a>", rendered)
+        self.assertIn('rel="noopener"', rendered)
+
+
 class JourneyPageTests(unittest.TestCase):
     data_dir = ROOT / "journey" / "data"
 
@@ -262,6 +280,22 @@ class JourneyPageTests(unittest.TestCase):
         )
         self.assertNotEqual(focused.get("left"), hidden["left"])
         self.assertEqual({name: focused.get(name) for name in ("width", "height")}, {"width": "auto", "height": "auto"})
+
+    def test_timeline_cards_include_border_box_sizing(self):
+        stylesheet = (ROOT / "journey" / "journey.css").read_text(encoding="utf-8")
+        self.assertRegex(stylesheet, r"\.journey-era\{[^}]*box-sizing:border-box;")
+
+    def test_generated_pages_include_primary_source_links(self):
+        pages = [("index.html", "overview.json")]
+        pages.extend((f"{slug}.html", filename) for slug, filename in ARTICLE_FILES.items())
+        for page_name, data_name in pages:
+            article = self.load_json(data_name)
+            page = (ROOT / "journey" / page_name).read_text(encoding="utf-8")
+            self.assertIn(article["source_url"], page, page_name)
+            for section in article["sections"]:
+                for link in section.get("links", []):
+                    self.assertIn(link["label"], page, page_name)
+                    self.assertIn(link["url"], page, page_name)
 
 
 class JourneyImageTests(unittest.TestCase):
