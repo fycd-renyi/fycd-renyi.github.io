@@ -119,10 +119,13 @@ const renderParagraphs = (paragraphs) => paragraphs
   .map((text) => `<p data-verbatim="true">${escapeHtml(text)}</p>`)
   .join("\n");
 
-const renderSection = (section) => {
+const renderImage = (image) => `<figure class="journey-inline-figure"><img src="${escapeHtml(image.src)}" alt="${escapeHtml(image.alt)}" loading="lazy" decoding="async"><figcaption>${escapeHtml(image.caption)}</figcaption></figure>`;
+
+const renderSection = (section, images = []) => {
   const heading = section.source_heading ?? section.title;
+  const sectionImages = images.filter((image) => image.after_section === section.id);
   return `<section class="journey-chapter" id="${escapeHtml(section.id)}">`
-    + `<h2>${escapeHtml(heading)}</h2>${renderParagraphs(section.paragraphs)}</section>`;
+    + `<h2>${escapeHtml(heading)}</h2>${renderParagraphs(section.paragraphs)}${sectionImages.map(renderImage).join("")}</section>`;
 };
 
 const renderArticlePagination = (article) => {
@@ -137,7 +140,7 @@ const renderArticle = (article) => {
   const toc = article.sections
     .map((section) => `<li><a href="#${escapeHtml(section.id)}">${escapeHtml(section.title)}</a></li>`)
     .join("");
-  const sections = article.sections.map(renderSection).join("\n");
+  const sections = article.sections.map((section) => renderSection(section, article.images ?? [])).join("\n");
   return `<article class="journey-article"><header class="article-header"><p class="journey-kicker">修辦歷程</p><h1>${escapeHtml(article.title)}</h1>`
     + `<p class="verbatim-notice">以下正文依原站逐字保存</p></header>`
     + `<nav class="article-toc" aria-label="文章目錄"><ol>${toc}</ol></nav>`
@@ -149,10 +152,15 @@ const renderOverview = (article) => {
   const heroPhoto = hero.photo;
   const timeline = article.timeline.map((era) => `<li class="journey-era"><p class="journey-era-title">${escapeHtml(era.title)}</p>${era.events.map((event) => `<p><time>${escapeHtml(event.year_label)}</time>${escapeHtml(event.text)}</p>`).join("")}</li>`).join("");
   const publications = article.publications.map((item) => `<article class="journey-publication-card"><p>${escapeHtml(item.summary)}</p><h3>${escapeHtml(item.title)}</h3><a href="${escapeHtml(item.href)}">閱讀全文</a></article>`).join("");
-  const gallery = article.gallery.map((item) => `<figure><img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt)}"><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join("");
-  const sources = article.sections.map(renderSection).join("\n");
+  const gallery = article.gallery.map((item) => `<figure><img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt)}" loading="lazy" decoding="async"><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join("");
+  const sources = article.sections.map((section) => renderSection(section)).join("\n");
   return `<article class="journey-overview"><section class="journey-hero" aria-labelledby="journey-title"><figure><img src="${escapeHtml(heroPhoto.src)}" alt="${escapeHtml(heroPhoto.alt)}"><figcaption>${escapeHtml(heroPhoto.caption)}</figcaption></figure><div><p class="journey-kicker">${escapeHtml(hero.kicker)}</p><h1 id="journey-title">${escapeHtml(article.title)}</h1><p>${escapeHtml(hero.intro)}</p></div></section><section class="journey-timeline" aria-labelledby="timeline-title"><div class="journey-heading"><p class="journey-kicker">時代軸線</p><h2 id="timeline-title">六個修辦階段</h2></div><ol>${timeline}</ol></section><section class="journey-publications" aria-labelledby="publications-title"><div class="journey-heading"><p class="journey-kicker">延伸閱讀</p><h2 id="publications-title">專文典藏</h2></div><div class="journey-publication-grid">${publications}</div></section><section class="journey-gallery" aria-labelledby="gallery-title"><div class="journey-heading"><p class="journey-kicker">典藏影像</p><h2 id="gallery-title">精選照片</h2></div><div class="journey-gallery-grid">${gallery}</div></section><section class="journey-sources" aria-labelledby="sources-title"><div class="journey-heading"><p class="journey-kicker">原文典藏</p><h2 id="sources-title">修辦歷程</h2></div>${sources}</section></article>`;
 };
+
+const renderOverviewWithImageAttributes = (article) => renderOverview(article).replace(
+  `<img src="${escapeHtml(article.hero.photo.src)}" alt="${escapeHtml(article.hero.photo.alt)}">`,
+  `<img src="${escapeHtml(article.hero.photo.src)}" alt="${escapeHtml(article.hero.photo.alt)}" loading="lazy" decoding="async">`,
+);
 
 const extractVerbatimParagraphs = (page) => [...page.matchAll(
   /<p data-verbatim="true">([\s\S]*?)<\/p>/g,
@@ -270,6 +278,27 @@ export async function verifyJourney() {
       );
     }
 
+    const images = source.dataFile === "overview.json"
+      ? [article.hero.photo, ...article.gallery]
+      : article.images;
+    assert.ok(Array.isArray(images) && images.length, `${source.dataFile}: requires verified local images`);
+    const catalogue = await readFile(path.join(JOURNEY_ROOT, "..", "photos", "catalog.csv"), "utf8");
+    for (const image of images) {
+      assert.equal(typeof image.src, "string", `${source.dataFile}: image source`);
+      assert.ok(image.src.startsWith("../photos/"), `${source.dataFile}: image must use a local photos path`);
+      assert.ok(!image.src.includes("googleusercontent.com") && !image.src.includes("sites.google.com"), `${source.dataFile}: Google image sources are prohibited`);
+      assert.equal(typeof image.alt, "string", `${source.dataFile}: image alt`);
+      assert.ok(image.alt.trim(), `${source.dataFile}: image alt cannot be empty`);
+      assert.equal(typeof image.caption, "string", `${source.dataFile}: image caption`);
+      assert.ok(image.caption.trim(), `${source.dataFile}: image caption cannot be empty`);
+      const catalogPath = image.src.replace("../photos/", "");
+      assert.ok(catalogue.split("\n").some((line) => line.startsWith(`${catalogPath},`)), `${source.dataFile}: image must be catalogued (${image.src})`);
+      await access(path.resolve(JOURNEY_ROOT, image.src));
+      if (source.dataFile !== "overview.json") {
+        assert.ok(article.sections.some((section) => section.id === image.after_section), `${source.dataFile}: image after_section must name an existing section`);
+      }
+    }
+
     const expectedParagraphs = article.sections.flatMap((section) => section.paragraphs);
     const page = await readFile(path.join(JOURNEY_ROOT, source.pageFile), "utf8");
     assert.ok(!page.includes("\r"), `${source.pageFile}: committed output must use LF`);
@@ -281,8 +310,13 @@ export async function verifyJourney() {
 
     const expectedPage = template
       .replace("{title}", escapeHtml(article.title))
-      .replace("{content}", source.dataFile === "overview.json" ? renderOverview(article) : renderArticle(article));
+      .replace("{content}", source.dataFile === "overview.json" ? renderOverviewWithImageAttributes(article) : renderArticle(article));
     assert.equal(page, expectedPage, `${source.pageFile}: deterministic generated output`);
+    for (const image of [...page.matchAll(/<img\\b[^>]*>/g)].map((match) => match[0])) {
+      assert.match(image, /\\bloading="lazy"/, `${source.pageFile}: image lazy-loads`);
+      assert.match(image, /\\bdecoding="async"/, `${source.pageFile}: image decodes asynchronously`);
+      assert.match(image, /\\balt="[^"\\n]+"/, `${source.pageFile}: image has readable alt text`);
+    }
 
     if (source.dataFile === "overview.json") {
       for (const region of ["journey-hero", "journey-timeline", "journey-publications", "journey-gallery"]) {

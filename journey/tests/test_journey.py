@@ -3,7 +3,9 @@
 The dependency-free executable verifier is ``verify-journey.mjs``.
 """
 
+import csv
 import json
+import re
 from html.parser import HTMLParser
 from pathlib import Path
 import unittest
@@ -204,3 +206,49 @@ class JourneyPageTests(unittest.TestCase):
         self.assertEqual(len(expected_ids), 15)
         self.assertEqual(page.section_ids, expected_ids)
         self.assertEqual(page.toc_hrefs, expected_ids)
+
+
+class JourneyImageTests(unittest.TestCase):
+    data_dir = ROOT / "journey" / "data"
+    article_data_files = (
+        "daofeng-yifan.json",
+        "dao-zhi-zungui-ganying.json",
+        "yushi-fenpan.json",
+    )
+
+    def load_json(self, filename):
+        return json.loads((self.data_dir / filename).read_text(encoding="utf-8"))
+
+    def catalog(self):
+        with (ROOT / "photos" / "catalog.csv").open(encoding="utf-8", newline="") as source:
+            return {row["file"]: row for row in csv.DictReader(source)}
+
+    def test_article_images_are_catalogued_and_anchored_to_sections(self):
+        """Removing a local, verified, or valid anchor should reject the article image."""
+        catalogue = self.catalog()
+        for filename in self.article_data_files:
+            article = self.load_json(filename)
+            self.assertTrue(article.get("images"), f"{filename}: requires at least one verified image")
+            section_ids = {section["id"] for section in article["sections"]}
+            for image in article["images"]:
+                src = image["src"]
+                self.assertTrue(src.startswith("../photos/"), f"{filename}: image must be local ({src})")
+                self.assertNotIn("googleusercontent.com", src, f"{filename}: Google image is not permitted")
+                self.assertNotIn("sites.google.com", src, f"{filename}: Google Sites image is not permitted")
+                catalog_path = src.removeprefix("../photos/")
+                self.assertIn(catalog_path, catalogue, f"{filename}: image must be catalogued ({src})")
+                self.assertTrue((ROOT / "photos" / catalog_path).is_file(), f"{filename}: image must exist ({src})")
+                self.assertEqual(image["alt"], catalogue[catalog_path]["alt"], f"{filename}: catalog alt must be retained")
+                self.assertIn(image["caption"], (catalogue[catalog_path]["title"], catalogue[catalog_path]["description"]), f"{filename}: caption must come from the catalog")
+                self.assertIn(image["after_section"], section_ids, f"{filename}: image anchor must name an existing section")
+
+    def test_generated_images_are_lazy_asynchronous_and_have_alt_text(self):
+        """Dropping an image performance or accessibility attribute should fail page generation checks."""
+        for page_name in ("index.html", "daofeng-yifan.html", "dao-zhi-zungui-ganying.html", "yushi-fenpan.html"):
+            page = (ROOT / "journey" / page_name).read_text(encoding="utf-8")
+            images = re.findall(r"<img\b[^>]*>", page)
+            self.assertTrue(images, f"{page_name}: expected generated images")
+            for image in images:
+                self.assertRegex(image, r'\bloading="lazy"', f"{page_name}: images must lazy-load")
+                self.assertRegex(image, r'\bdecoding="async"', f"{page_name}: images must decode asynchronously")
+                self.assertRegex(image, r'\balt="[^"\n]+"', f"{page_name}: images need readable alt text")

@@ -33,10 +33,17 @@ def render_paragraphs(paragraphs):
     return "\n".join(f'<p data-verbatim="true">{html.escape(text)}</p>' for text in paragraphs)
 
 
-def render_section(section):
+def render_image(image):
+    return (f'<figure class="journey-inline-figure"><img src="{html.escape(image["src"])}" '
+            f'alt="{html.escape(image["alt"])}" loading="lazy" decoding="async">'
+            f'<figcaption>{html.escape(image["caption"])}</figcaption></figure>')
+
+
+def render_section(section, images=()):
     heading = section.get("source_heading", section["title"])
+    section_images = "".join(render_image(image) for image in images if image["after_section"] == section["id"])
     return (f'<section class="journey-chapter" id="{html.escape(section["id"])}">'
-            f'<h2>{html.escape(heading)}</h2>{render_paragraphs(section["paragraphs"])}</section>')
+            f'<h2>{html.escape(heading)}</h2>{render_paragraphs(section["paragraphs"])}{section_images}</section>')
 
 
 def render_article_pagination(navigation):
@@ -57,7 +64,7 @@ def render_article(article, navigation=None):
         "next_title": "修辦歷程",
     }
     toc = "".join(f'<li><a href="#{html.escape(section["id"])}">{html.escape(section["title"])}</a></li>' for section in article["sections"])
-    sections = "\n".join(render_section(section) for section in article["sections"])
+    sections = "\n".join(render_section(section, article.get("images", ())) for section in article["sections"])
     return (
         '<article class="journey-article">'
         '<header class="article-header"><p class="journey-kicker">修辦歷程</p>'
@@ -88,7 +95,7 @@ def render_overview(article):
         for item in article["publications"]
     )
     gallery = "".join(
-        f'<figure><img src="{html.escape(item["src"])}" alt="{html.escape(item["alt"])}">'
+        f'<figure><img src="{html.escape(item["src"])}" alt="{html.escape(item["alt"])}" loading="lazy" decoding="async">'
         f'<figcaption>{html.escape(item["caption"])}</figcaption></figure>'
         for item in article["gallery"]
     )
@@ -96,7 +103,7 @@ def render_overview(article):
     return (
         '<article class="journey-overview">'
         '<section class="journey-hero" aria-labelledby="journey-title">'
-        f'<figure><img src="{html.escape(hero_photo["src"])}" alt="{html.escape(hero_photo["alt"])}"><figcaption>{html.escape(hero_photo["caption"])}</figcaption></figure>'
+        f'<figure><img src="{html.escape(hero_photo["src"])}" alt="{html.escape(hero_photo["alt"])}" loading="lazy" decoding="async"><figcaption>{html.escape(hero_photo["caption"])}</figcaption></figure>'
         f'<div><p class="journey-kicker">{html.escape(hero["kicker"])}</p><h1 id="journey-title">{html.escape(article["title"])}</h1><p>{html.escape(hero["intro"])}</p></div>'
         '</section>'
         '<section class="journey-timeline" aria-labelledby="timeline-title"><div class="journey-heading"><p class="journey-kicker">時代軸線</p><h2 id="timeline-title">六個修辦階段</h2></div><ol>'

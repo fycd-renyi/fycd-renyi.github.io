@@ -15,3 +15,5 @@
 
 /* This is the no-JavaScript baseline; the next rules only activate after enhancement. */
 .back-to-top{opacity:1;pointer-events:auto;transform:translateY(0)}.js-enabled .back-to-top{opacity:0;pointer-events:none;transform:translateY(8px)}.js-enabled .back-to-top.is-visible{opacity:1;pointer-events:auto;transform:translateY(0)}
+
+.journey-inline-figure{max-width:42em;margin:34px 0 0;overflow:hidden;background:var(--journey-cream);border:1px solid var(--journey-line);box-shadow:var(--journey-shadow)}.journey-inline-figure img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;background:var(--journey-cream)}.journey-inline-figure figcaption{padding:10px 14px;color:var(--journey-muted);font-size:14px;line-height:1.6}
