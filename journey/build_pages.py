@@ -50,13 +50,13 @@ def build_all(root):
     for slug, filename in ARTICLE_FILES.items():
         article = load_article(journey / "data" / filename)
         page = template.format(title=html.escape(article["title"]), content=render_article(article))
-        (journey / f"{slug}.html").write_text(page, encoding="utf-8")
+        (journey / f"{slug}.html").write_text(page, encoding="utf-8", newline="\n")
     overview = load_article(journey / "data" / "overview.json")
     page = template.format(
         title=html.escape(overview["title"]),
         content=render_article(overview),
     )
-    (journey / "index.html").write_text(page, encoding="utf-8")
+    (journey / "index.html").write_text(page, encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

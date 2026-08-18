@@ -1,7 +1,6 @@
-"""Data-contract reference tests for environments that provide Python.
+"""Python reference tests for the journey data and renderer.
 
-The executable test is journey-data.browser-test.html because the active shell
-does not provide a Python runtime.
+The dependency-free executable verifier is ``verify-journey.mjs``.
 """
 
 import json
@@ -27,7 +26,13 @@ EXPECTED_GANYING_SOURCE_HEADINGS = [
 ]
 
 EXPECTED_SOURCE_LAYOUT = {
-    "daofeng-yifan.json": [("道風彝範", 25)],
+    "daofeng-yifan.json": [
+        ("前言", 1),
+        ("一大事因緣在人間", 4),
+        ("開道歷程之回顧", 9),
+        ("道風彝範", 9),
+        ("結語", 2),
+    ],
     "dao-zhi-zungui-ganying.json": list(zip(EXPECTED_GANYING_TITLES, [
         4, 6, 12, 9, 85, 9, 8, 9, 7, 7, 9, 27, 8, 8, 1,
     ])),
