@@ -60,6 +60,33 @@ class JourneyPageParser(HTMLParser):
             self._paragraph.append(data)
 
 
+class FortuneHeaderParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.children = []
+        self._in_header = False
+        self._depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        attributes = dict(attrs)
+        if tag == "header" and attributes.get("class") == "site-header":
+            self._in_header = True
+            self._depth = 0
+            return
+        if self._in_header:
+            if self._depth == 0:
+                self.children.append((tag, attributes))
+            self._depth += 1
+
+    def handle_endtag(self, tag):
+        if not self._in_header:
+            return
+        if tag == "header" and self._depth == 0:
+            self._in_header = False
+        elif self._depth:
+            self._depth -= 1
+
+
 def parse_page(path):
     parser = JourneyPageParser()
     parser.feed(path.read_text(encoding="utf-8"))
@@ -272,3 +299,16 @@ class SiteNavigationTests(unittest.TestCase):
         timeline = re.search(r'<section class="life-section" id="journey">([\s\S]*?)</section>', homepage)
         self.assertIsNotNone(timeline)
         self.assertRegex(timeline.group(1), r'href="/journey/"[^>]*>閱讀完整修辦歷程</a>')
+
+    def test_fortune_header_keeps_navigation_brand_and_language_in_stable_grid_columns(self):
+        parser = FortuneHeaderParser()
+        parser.feed((ROOT / "fortune/index.html").read_text(encoding="utf-8"))
+        self.assertEqual([tag for tag, _ in parser.children], ["nav", "div", "button"])
+        self.assertEqual(parser.children[0][1].get("class"), "site-nav-links")
+        self.assertEqual(parser.children[1][1].get("class"), "brand")
+        self.assertEqual(parser.children[2][1].get("class"), "lang-toggle")
+
+        stylesheet = (ROOT / "fortune/style.css").read_text(encoding="utf-8")
+        self.assertRegex(stylesheet, r'\.site-nav-links\s*\{[^}]*display:\s*flex;[^}]*justify-self:\s*start;')
+        self.assertRegex(stylesheet, r'\.brand\s*\{[^}]*grid-column:\s*2;[^}]*justify-self:\s*center;')
+        self.assertRegex(stylesheet, r'\.lang-toggle\s*\{[^}]*grid-column:\s*3;[^}]*justify-self:\s*end;')
