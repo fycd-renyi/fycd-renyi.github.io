@@ -19,6 +19,13 @@ ARTICLE_FILES = {
     "dao-zhi-zungui-ganying": "dao-zhi-zungui-ganying.json",
     "yushi-fenpan": "yushi-fenpan.json",
 }
+PRIMARY_PAGES = (
+    "index.html",
+    "photos/index.html",
+    "library/index.html",
+    "fortune/index.html",
+    "blessing/index.html",
+)
 
 
 class JourneyPageParser(HTMLParser):
@@ -252,3 +259,16 @@ class JourneyImageTests(unittest.TestCase):
                 self.assertRegex(image, r'\bloading="lazy"', f"{page_name}: images must lazy-load")
                 self.assertRegex(image, r'\bdecoding="async"', f"{page_name}: images must decode asynchronously")
                 self.assertRegex(image, r'\balt="[^"\n]+"', f"{page_name}: images need readable alt text")
+
+
+class SiteNavigationTests(unittest.TestCase):
+    def test_primary_pages_link_to_journey(self):
+        for relative in PRIMARY_PAGES:
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertRegex(page, r'href="(?:/journey/|journey/)"[^>]*>修辦歷程</a>')
+
+    def test_homepage_timeline_links_to_complete_journey(self):
+        homepage = (ROOT / "index.html").read_text(encoding="utf-8")
+        timeline = re.search(r'<section class="life-section" id="journey">([\s\S]*?)</section>', homepage)
+        self.assertIsNotNone(timeline)
+        self.assertRegex(timeline.group(1), r'href="/journey/"[^>]*>閱讀完整修辦歷程</a>')
