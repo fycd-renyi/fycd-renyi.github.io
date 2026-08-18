@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -80,6 +80,12 @@ const sources = [
   },
 ];
 
+const OVERVIEW_ARTICLES = [
+  "daofeng-yifan.html",
+  "dao-zhi-zungui-ganying.html",
+  "yushi-fenpan.html",
+];
+
 const escapeHtml = (value) => String(value)
   .replaceAll("&", "&amp;")
   .replaceAll("<", "&lt;")
@@ -112,6 +118,16 @@ const renderArticle = (article) => {
   return `<article><h1>${escapeHtml(article.title)}</h1>`
     + `<nav class="article-toc" aria-label="文章目錄"><ol>${toc}</ol></nav>`
     + `${sections}</article>`;
+};
+
+const renderOverview = (article) => {
+  const hero = article.hero;
+  const heroPhoto = hero.photo;
+  const timeline = article.timeline.map((era) => `<li class="journey-era"><p class="journey-era-title">${escapeHtml(era.title)}</p>${era.events.map((event) => `<p><time>${escapeHtml(event.year_label)}</time>${escapeHtml(event.text)}</p>`).join("")}</li>`).join("");
+  const publications = article.publications.map((item) => `<article class="journey-publication-card"><p>${escapeHtml(item.summary)}</p><h3>${escapeHtml(item.title)}</h3><a href="${escapeHtml(item.href)}">閱讀全文</a></article>`).join("");
+  const gallery = article.gallery.map((item) => `<figure><img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.alt)}"><figcaption>${escapeHtml(item.caption)}</figcaption></figure>`).join("");
+  const sources = article.sections.map(renderSection).join("\n");
+  return `<article class="journey-overview"><section class="journey-hero" aria-labelledby="journey-title"><figure><img src="${escapeHtml(heroPhoto.src)}" alt="${escapeHtml(heroPhoto.alt)}"><figcaption>${escapeHtml(heroPhoto.caption)}</figcaption></figure><div><p class="journey-kicker">${escapeHtml(hero.kicker)}</p><h1 id="journey-title">${escapeHtml(article.title)}</h1><p>${escapeHtml(hero.intro)}</p></div></section><section class="journey-timeline" aria-labelledby="timeline-title"><div class="journey-heading"><p class="journey-kicker">時代軸線</p><h2 id="timeline-title">六個修辦階段</h2></div><ol>${timeline}</ol></section><section class="journey-publications" aria-labelledby="publications-title"><div class="journey-heading"><p class="journey-kicker">延伸閱讀</p><h2 id="publications-title">專文典藏</h2></div><div class="journey-publication-grid">${publications}</div></section><section class="journey-gallery" aria-labelledby="gallery-title"><div class="journey-heading"><p class="journey-kicker">典藏影像</p><h2 id="gallery-title">精選照片</h2></div><div class="journey-gallery-grid">${gallery}</div></section><section class="journey-sources" aria-labelledby="sources-title"><div class="journey-heading"><p class="journey-kicker">原文典藏</p><h2 id="sources-title">修辦歷程</h2></div>${sources}</section></article>`;
 };
 
 const extractVerbatimParagraphs = (page) => [...page.matchAll(
@@ -221,8 +237,31 @@ export async function verifyJourney() {
 
     const expectedPage = template
       .replace("{title}", escapeHtml(article.title))
-      .replace("{content}", renderArticle(article));
+      .replace("{content}", source.dataFile === "overview.json" ? renderOverview(article) : renderArticle(article));
     assert.equal(page, expectedPage, `${source.pageFile}: deterministic generated output`);
+
+    if (source.dataFile === "overview.json") {
+      for (const region of ["journey-hero", "journey-timeline", "journey-publications", "journey-gallery"]) {
+        assert.match(page, new RegExp(`class="[^"]*${region}[^"]*"`), `index.html: ${region} overview region`);
+      }
+      assert.equal(
+        (page.match(/class="journey-era"/g) ?? []).length,
+        6,
+        "index.html: six visual journey eras",
+      );
+      for (const href of OVERVIEW_ARTICLES) {
+        assert.ok(page.includes(`href="${href}"`), `index.html: publication link ${href}`);
+      }
+      const imageSources = [...page.matchAll(/<img[^>]+src="([^"]+)"[^>]*>/g)].map((match) => match[1]);
+      assert.ok(imageSources.length >= 4, "index.html: at least four local archive images");
+      const catalogue = await readFile(path.join(JOURNEY_ROOT, "..", "photos", "catalog.csv"), "utf8");
+      for (const sourcePath of imageSources) {
+        assert.ok(!/^https?:\/\//.test(sourcePath), `index.html: image must remain local (${sourcePath})`);
+        await access(path.resolve(JOURNEY_ROOT, sourcePath));
+        const catalogPath = sourcePath.replace("../photos/", "");
+        assert.ok(catalogue.split("\n").some((line) => line.startsWith(`${catalogPath},`)), `index.html: image must be catalogued (${sourcePath})`);
+      }
+    }
 
     paragraphCount += expectedParagraphs.length;
     if (source.dataFile !== "overview.json") articleSectionCount += article.sections.length;

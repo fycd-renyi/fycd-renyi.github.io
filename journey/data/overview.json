@@ -1,6 +1,54 @@
 {
   "title": "修辦歷程",
   "source_url": "https://sites.google.com/view/fycd-renyidaxian/%E4%BF%AE%E8%BE%A6%E6%AD%B7%E7%A8%8B?authuser=0",
+  "hero": {
+    "kicker": "仁義大仙",
+    "intro": "循著六個時期，回望一生修辦與道務開展。",
+    "photo": {
+      "src": "../photos/uploads/archive/獨照/道袍.jpg",
+      "alt": "仁義大仙身著道袍留影",
+      "caption": "道袍留影"
+    }
+  },
+  "publications": [
+    {
+      "href": "daofeng-yifan.html",
+      "title": "道風彝範",
+      "summary": "生平與開道歷程"
+    },
+    {
+      "href": "dao-zhi-zungui-ganying.html",
+      "title": "道之尊貴感應",
+      "summary": "修辦感應事蹟"
+    },
+    {
+      "href": "yushi-fenpan.html",
+      "title": "玉石分判",
+      "summary": "訓文與慈悲講話"
+    }
+  ],
+  "gallery": [
+    {
+      "src": "../photos/uploads/archive/佛堂中/天佑宮中叩拜1.jpg",
+      "alt": "仁義大仙於天佑宮中叩拜",
+      "caption": "天佑宮中叩拜"
+    },
+    {
+      "src": "../photos/uploads/archive/佛堂中/天佑宮動土1.png",
+      "alt": "天佑宮動土典禮照片",
+      "caption": "天佑宮動土"
+    },
+    {
+      "src": "../photos/uploads/archive/眾道親/天佑宮前合照.jpg",
+      "alt": "仁義大仙與眾道親於天佑宮前合照",
+      "caption": "天佑宮前合照"
+    },
+    {
+      "src": "../photos/uploads/archive/3印尼  新加坡/眾道親印尼1.jpg",
+      "alt": "仁義大仙與印尼眾道親合照",
+      "caption": "印尼眾道親合照"
+    }
+  ],
   "sections": [
     {
       "id": "journey",
