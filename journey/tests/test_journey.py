@@ -358,13 +358,28 @@ class SiteNavigationTests(unittest.TestCase):
     def test_complete_biography_timeline_is_moved_verbatim_to_journey_overview(self):
         biography = (ROOT / "journey" / "data" / "biography-timeline.html").read_text(encoding="utf-8").strip()
         overview = (ROOT / "journey" / "index.html").read_text(encoding="utf-8")
-        self.assertIn("方老點傳師吳慶生平記事", biography)
+        self.assertIn('<section class="life-section" id="complete-journey">', biography)
+        self.assertIn("<h2>修辦歷程</h2>", biography)
+        self.assertNotIn("方老點傳師吳慶生平記事", biography)
+        self.assertNotIn("閱讀完整修辦歷程", biography)
         self.assertIn("民國前2年", biography)
         self.assertIn("民國92年", biography)
         self.assertIn(biography, overview)
         self.assertNotIn("六個修辦階段", overview)
         self.assertNotIn("時代軸線", overview)
         self.assertNotIn("六個時期", overview)
+
+    def test_overview_orders_source_then_publications_then_complete_journey(self):
+        overview = (ROOT / "journey" / "index.html").read_text(encoding="utf-8")
+        source_position = overview.index('<section class="journey-sources"')
+        publications_position = overview.index('<section class="journey-publications"')
+        biography_position = overview.index('<section class="life-section" id="complete-journey">')
+        self.assertLess(source_position, publications_position)
+        self.assertLess(publications_position, biography_position)
+        self.assertRegex(
+            overview,
+            r'依年份回望一生修辦與道務開展。</p><a class="journey-hero-link" href="#complete-journey">閱讀完整修辦歷程</a>',
+        )
 
     def test_fortune_header_keeps_navigation_brand_and_language_in_stable_grid_columns(self):
         parser = FortuneHeaderParser()
