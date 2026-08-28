@@ -22,7 +22,6 @@ ARTICLE_FILES = {
 PRIMARY_PAGES = (
     "index.html",
     "photos/index.html",
-    "library/index.html",
     "fortune/index.html",
     "blessing/index.html",
 )
@@ -354,6 +353,18 @@ class SiteNavigationTests(unittest.TestCase):
         homepage = (ROOT / "index.html").read_text(encoding="utf-8")
         self.assertRegex(homepage, r'class="button" href="/journey/">修辦歷程</a>')
         self.assertNotIn('<section class="life-section" id="journey">', homepage)
+
+    def test_library_navigation_ends_with_home_and_omits_journey(self):
+        library = (ROOT / "library" / "index.html").read_text(encoding="utf-8")
+        navigation = re.search(r'<nav id="library-nav">([\s\S]*?)</nav>', library)
+        self.assertIsNotNone(navigation)
+        links = re.findall(r'<a\b[^>]*>([^<]+)</a>', navigation.group(1))
+        self.assertEqual(links, ["藏經閣首頁", "典藏", "初衷", "崇德仁義首頁"])
+        self.assertNotIn('href="/journey/"', navigation.group(1))
+        self.assertRegex(
+            navigation.group(1),
+            r'<a href="https://fycd-renyi.github.io/" target="_blank" rel="noopener">崇德仁義首頁</a>$',
+        )
 
     def test_complete_biography_timeline_is_moved_verbatim_to_journey_overview(self):
         biography = (ROOT / "journey" / "data" / "biography-timeline.html").read_text(encoding="utf-8").strip()
