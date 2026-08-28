@@ -350,11 +350,21 @@ class SiteNavigationTests(unittest.TestCase):
             page = (ROOT / relative).read_text(encoding="utf-8")
             self.assertRegex(page, r'href="(?:/journey/|journey/)"[^>]*>修辦歷程</a>')
 
-    def test_homepage_timeline_links_to_complete_journey(self):
+    def test_homepage_journey_button_opens_complete_journey(self):
         homepage = (ROOT / "index.html").read_text(encoding="utf-8")
-        timeline = re.search(r'<section class="life-section" id="journey">([\s\S]*?)</section>', homepage)
-        self.assertIsNotNone(timeline)
-        self.assertRegex(timeline.group(1), r'href="/journey/"[^>]*>閱讀完整修辦歷程</a>')
+        self.assertRegex(homepage, r'class="button" href="/journey/">修辦歷程</a>')
+        self.assertNotIn('<section class="life-section" id="journey">', homepage)
+
+    def test_complete_biography_timeline_is_moved_verbatim_to_journey_overview(self):
+        biography = (ROOT / "journey" / "data" / "biography-timeline.html").read_text(encoding="utf-8").strip()
+        overview = (ROOT / "journey" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("方老點傳師吳慶生平記事", biography)
+        self.assertIn("民國前2年", biography)
+        self.assertIn("民國92年", biography)
+        self.assertIn(biography, overview)
+        self.assertNotIn("六個修辦階段", overview)
+        self.assertNotIn("時代軸線", overview)
+        self.assertNotIn("六個時期", overview)
 
     def test_fortune_header_keeps_navigation_brand_and_language_in_stable_grid_columns(self):
         parser = FortuneHeaderParser()

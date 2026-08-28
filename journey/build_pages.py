@@ -89,18 +89,9 @@ def render_article(article, navigation=None):
     )
 
 
-def render_overview(article):
+def render_overview(article, biography_timeline):
     hero = article["hero"]
     hero_photo = hero["photo"]
-    timeline = "".join(
-        f'<li class="journey-era"><p class="journey-era-title">{html.escape(era["title"])}</p>'
-        + "".join(
-            f'<p><time>{html.escape(event["year_label"])}</time>{html.escape(event["text"])}</p>'
-            for event in era["events"]
-        )
-        + "</li>"
-        for era in article["timeline"]
-    )
     publications = "".join(
         f'<article class="journey-publication-card"><p>{html.escape(item["summary"])}</p>'
         f'<h3>{html.escape(item["title"])}</h3><a href="{html.escape(item["href"])}">閱讀全文</a></article>'
@@ -118,8 +109,7 @@ def render_overview(article):
         f'<figure><img src="{html.escape(hero_photo["src"])}" alt="{html.escape(hero_photo["alt"])}" loading="lazy" decoding="async"><figcaption>{html.escape(hero_photo["caption"])}</figcaption></figure>'
         f'<div><p class="journey-kicker">{html.escape(hero["kicker"])}</p><h1 id="journey-title">{html.escape(article["title"])}</h1><p>{html.escape(hero["intro"])}</p></div>'
         '</section>'
-        '<section class="journey-timeline" aria-labelledby="timeline-title"><div class="journey-heading"><p class="journey-kicker">時代軸線</p><h2 id="timeline-title">六個修辦階段</h2></div><ol>'
-        f'{timeline}</ol></section>'
+        f'{biography_timeline}'
         '<section class="journey-publications" aria-labelledby="publications-title"><div class="journey-heading"><p class="journey-kicker">延伸閱讀</p><h2 id="publications-title">專文典藏</h2></div><div class="journey-publication-grid">'
         f'{publications}</div></section>'
         '<section class="journey-gallery" aria-labelledby="gallery-title"><div class="journey-heading"><p class="journey-kicker">典藏影像</p><h2 id="gallery-title">精選照片</h2></div><div class="journey-gallery-grid">'
@@ -149,9 +139,10 @@ def build_all(root):
         page = template.format(title=html.escape(article["title"]), content=render_article(article, navigation))
         (journey / f"{slug}.html").write_text(page, encoding="utf-8", newline="\n")
     overview = load_article(journey / "data" / "overview.json")
+    biography_timeline = (journey / "data" / "biography-timeline.html").read_text(encoding="utf-8").strip()
     page = template.format(
         title=html.escape(overview["title"]),
-        content=render_overview(overview),
+        content=render_overview(overview, biography_timeline),
     )
     (journey / "index.html").write_text(page, encoding="utf-8", newline="\n")
 
