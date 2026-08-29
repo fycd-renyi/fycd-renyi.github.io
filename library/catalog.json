@@ -56,6 +56,13 @@
     "category": "teaching"
   },
   {
+    "file": "books/teachings/huci-xianzhen.pdf",
+    "title": "護慈仙真結緣訓（林珊合點傳師）",
+    "pages": 42,
+    "description": "護慈仙真林珊合點傳師結緣訓，珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
     "file": "books/teachings/hudao-tianxian.pdf",
     "title": "護道天仙結緣訓",
     "pages": 39,
@@ -70,10 +77,24 @@
     "category": "teaching"
   },
   {
+    "file": "books/teachings/shengci-daxian.pdf",
+    "title": "聖慈大仙結緣訓",
+    "pages": 34,
+    "description": "結緣訓珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
     "file": "books/teachings/shimu-cixun-1992.pdf",
     "title": "師母慈訓",
     "pages": 14,
     "description": "民國八十一年（1992年）壬申四月十五日師母慈訓，珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
+    "file": "books/teachings/sima-fude-wuzhen.pdf",
+    "title": "司馬、福德、悟真大仙結緣訓",
+    "pages": 42,
+    "description": "司馬、福德、悟真大仙結緣訓，珍貴訓文數位典藏。",
     "category": "teaching"
   },
   {
@@ -87,6 +108,20 @@
     "file": "books/teachings/wenning-tianxian.pdf",
     "title": "文寧天仙結緣訓",
     "pages": 18,
+    "description": "結緣訓珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
+    "file": "books/teachings/wushishu.pdf",
+    "title": "吳石樹（考試院勤務專員）結緣訓",
+    "pages": 17,
+    "description": "吳石樹（考試院勤務專員）結緣訓，珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
+    "file": "books/teachings/yishan-xianzhen.pdf",
+    "title": "懿善仙真結緣訓",
+    "pages": 24,
     "description": "結緣訓珍貴訓文數位典藏。",
     "category": "teaching"
   },
