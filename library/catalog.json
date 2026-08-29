@@ -49,10 +49,31 @@
     "category": "teaching"
   },
   {
+    "file": "books/teachings/fumo-dadi-guansheng-1981.pdf",
+    "title": "伏魔大帝關聖慈訓",
+    "pages": 9,
+    "description": "辛酉年（1981年）台中天恩堂伏魔大帝關聖慈訓，珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
     "file": "books/teachings/hanxin-daxian.pdf",
     "title": "韓信大仙結緣訓",
     "pages": 22,
     "description": "結緣訓珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
+    "file": "books/teachings/huangmu-cixun-1976.pdf",
+    "title": "皇母慈訓（丙辰年）",
+    "pages": 26,
+    "description": "民國六十五年（1976年）丙辰皇母慈訓，珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
+    "file": "books/teachings/huangmu-cixun-1983.pdf",
+    "title": "皇母慈訓（癸亥年）",
+    "pages": 18,
+    "description": "民國七十二年（1983年）癸亥皇母慈訓，珍貴訓文數位典藏。",
     "category": "teaching"
   },
   {
