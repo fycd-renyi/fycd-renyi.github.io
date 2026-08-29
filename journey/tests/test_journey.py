@@ -21,9 +21,16 @@ ARTICLE_FILES = {
 }
 PRIMARY_PAGES = (
     "index.html",
+)
+NON_HOME_PAGES = (
     "photos/index.html",
     "fortune/index.html",
     "blessing/index.html",
+    "journey/templates/base.html",
+    "journey/index.html",
+    "journey/daofeng-yifan.html",
+    "journey/dao-zhi-zungui-ganying.html",
+    "journey/yushi-fenpan.html",
 )
 
 
@@ -348,6 +355,15 @@ class SiteNavigationTests(unittest.TestCase):
         for relative in PRIMARY_PAGES:
             page = (ROOT / relative).read_text(encoding="utf-8")
             self.assertRegex(page, r'href="(?:/journey/|journey/)"[^>]*>修辦歷程</a>')
+
+    def test_non_home_pages_do_not_offer_journey_navigation(self):
+        for relative in NON_HOME_PAGES:
+            page = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertNotRegex(
+                page,
+                r'<a\b[^>]*href="/journey/"[^>]*>修辦歷程</a>',
+                relative,
+            )
 
     def test_homepage_journey_button_opens_complete_journey(self):
         homepage = (ROOT / "index.html").read_text(encoding="utf-8")
