@@ -3,7 +3,7 @@ import { buildPreviewSet, replacementForSlot } from './home-gallery-logic.mjs?v=
 
 const gallery = document.querySelector('#home-photo-preview');
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-let current = buildPreviewSet(PHOTOS, 4);
+let current = buildPreviewSet(PHOTOS, 5);
 let slotIndex = 0;
 
 function photoSource(photo) {

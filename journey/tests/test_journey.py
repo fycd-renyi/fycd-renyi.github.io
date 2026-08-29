@@ -351,6 +351,13 @@ class JourneyImageTests(unittest.TestCase):
 
 
 class SiteNavigationTests(unittest.TestCase):
+    def test_homepage_photo_preview_fills_all_five_grid_slots(self):
+        gallery_script = (ROOT / "home-gallery.js").read_text(encoding="utf-8")
+        homepage = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertRegex(gallery_script, r"buildPreviewSet\(PHOTOS, 5\)")
+        self.assertNotRegex(gallery_script, r"buildPreviewSet\(PHOTOS, 4\)")
+        self.assertIn('src="home-gallery.js?v=2"', homepage)
+
     def test_all_visible_home_links_use_homepage_label(self):
         pages = [
             path for path in ROOT.rglob("*.html")
