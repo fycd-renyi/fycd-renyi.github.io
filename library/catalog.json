@@ -1,5 +1,12 @@
 [
   {
+    "file": "books/ebooks/jiushi-luanyin.pdf",
+    "title": "救世鸞音",
+    "pages": 187,
+    "description": "救世鸞音整本翻印，珍貴聖訓數位典藏。",
+    "category": "ebook"
+  },
+  {
     "file": "books/ebooks/mingde-jinxiulu-1992.pdf",
     "title": "明德進修錄",
     "pages": 97,
@@ -56,10 +63,31 @@
     "category": "teaching"
   },
   {
+    "file": "books/teachings/shimu-cixun-1992.pdf",
+    "title": "師母慈訓",
+    "pages": 14,
+    "description": "民國八十一年（1992年）壬申四月十五日師母慈訓，珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
+    "file": "books/teachings/weihuang-shangdi-1986.pdf",
+    "title": "維皇上帝慈訓",
+    "pages": 18,
+    "description": "丙寅年（1986年）冬季盛典，和美天佑宮維皇上帝慈訓，珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
     "file": "books/teachings/wenning-tianxian.pdf",
     "title": "文寧天仙結緣訓",
     "pages": 18,
     "description": "結緣訓珍貴訓文數位典藏。",
+    "category": "teaching"
+  },
+  {
+    "file": "books/teachings/yushi-fenpan-1983.pdf",
+    "title": "玉石分判明明上帝慈訓",
+    "pages": 30,
+    "description": "民國七十二年歲次癸亥（1983年）桐月春季聖典，明明上帝玉石分判聖訓，珍貴訓文數位典藏。",
     "category": "teaching"
   }
 ]
