@@ -351,19 +351,21 @@ class JourneyImageTests(unittest.TestCase):
 
 
 class SiteNavigationTests(unittest.TestCase):
-    def test_cultivating_virtue_card_links_to_hemei_anniversary_book(self):
+    def test_anniversary_card_uses_book_specific_copy_and_link(self):
         homepage = (ROOT / "index.html").read_text(encoding="utf-8")
         card = re.search(
-            r'<article><span>03</span><h3>達標準更要培德</h3>([\s\S]*?)</article>',
+            r'<article><span>03</span>([\s\S]*?)</article>',
             homepage,
         )
         self.assertIsNotNone(card)
-        self.assertIn("正己成人，涵養德行，實踐大道。", card.group(1))
+        self.assertIn("<h3>和美五十周年紀念專刊</h3>", card.group(1))
+        self.assertIn("同心同德同努力，典藏和美道場五十年修辦足跡。", card.group(1))
         self.assertIn(
             '<a class="card-link" href="/books/hemei-50th/">翻頁閱讀 →</a>',
             card.group(1),
         )
-        self.assertNotIn("內容整理中", card.group(1))
+        self.assertNotIn("達標準更要培德", card.group(1))
+        self.assertNotIn("正己成人，涵養德行，實踐大道。", card.group(1))
 
     def test_homepage_photo_preview_fills_all_five_grid_slots(self):
         gallery_script = (ROOT / "home-gallery.js").read_text(encoding="utf-8")
