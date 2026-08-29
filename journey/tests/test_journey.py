@@ -351,6 +351,16 @@ class JourneyImageTests(unittest.TestCase):
 
 
 class SiteNavigationTests(unittest.TestCase):
+    def test_all_visible_home_links_use_homepage_label(self):
+        pages = [
+            path for path in ROOT.rglob("*.html")
+            if not any(part.startswith(".") for part in path.relative_to(ROOT).parts)
+        ]
+        self.assertTrue(pages)
+        for page_path in pages:
+            page = page_path.read_text(encoding="utf-8")
+            self.assertNotIn("崇德仁義總站", page, str(page_path.relative_to(ROOT)))
+
     def test_primary_pages_link_to_journey(self):
         for relative in PRIMARY_PAGES:
             page = (ROOT / relative).read_text(encoding="utf-8")
